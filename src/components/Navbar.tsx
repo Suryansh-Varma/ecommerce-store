@@ -9,8 +9,8 @@ export default function Navbar() {
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const cartItems = useCartStore((state) => state.items);
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartItems = useCartStore((state) => state.items) || [];
+  const cartCount = cartItems.reduce((sum, item) => sum + (item?.quantity || 0), 0);
 
   const isActive = (path: string) => pathname === path;
 

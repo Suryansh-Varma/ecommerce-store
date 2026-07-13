@@ -20,9 +20,9 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = (products || []).filter((product) =>
+    (product?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+    (product?.description || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   return (

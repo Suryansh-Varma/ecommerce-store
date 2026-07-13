@@ -24,23 +24,6 @@ export default function AIChat() {
   const { addToCart } = useCartStore();
   const auth = useAuth();
 
-  // Hide the AI widget completely if the user is not logged in
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Stop pulse ring after first interaction
-  const handleOpen = () => {
-    setIsOpen(true);
-    setPulse(false);
-  };
-
-  const handleClose = () => setIsOpen(false);
-
-  const handleClear = () => {
-    setMessages([]);
-  };
-
   const handleAddToCart = useCallback(
     async (product: ProductSuggestion) => {
       if (!isAuthenticated || !auth.user) {
@@ -61,6 +44,23 @@ export default function AIChat() {
     },
     [isAuthenticated, auth.user, addToCart]
   );
+
+  // Hide the AI widget completely if the user is not logged in
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Stop pulse ring after first interaction
+  const handleOpen = () => {
+    setIsOpen(true);
+    setPulse(false);
+  };
+
+  const handleClose = () => setIsOpen(false);
+
+  const handleClear = () => {
+    setMessages([]);
+  };
 
   return (
     <>

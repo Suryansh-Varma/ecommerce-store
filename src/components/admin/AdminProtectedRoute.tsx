@@ -21,6 +21,8 @@ export default function AdminProtectedRoute({ children }: AdminProtectedRoutePro
     }
   }, [isLoading, isAuthenticated, router]);
 
+  const [errorMsg, setErrorMsg] = useState<string>('');
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -31,6 +33,7 @@ export default function AdminProtectedRoute({ children }: AdminProtectedRoutePro
       })
       .catch((error) => {
         console.error('Verifying admin privileges failed:', error);
+        setErrorMsg(error?.response?.data?.message || error?.message || 'Unknown error');
         setIsAdmin(false);
         setVerifying(false);
       });
@@ -64,6 +67,11 @@ export default function AdminProtectedRoute({ children }: AdminProtectedRoutePro
           <p className="text-sm text-slate-500 font-sans">
             You do not have administrative permissions to view this section.
           </p>
+          {errorMsg && (
+            <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded border border-red-100">
+              Error details: {errorMsg}
+            </p>
+          )}
           <div className="flex justify-center gap-3 pt-2">
             <button
               onClick={() => router.push('/')}
