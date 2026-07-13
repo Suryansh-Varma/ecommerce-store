@@ -321,13 +321,13 @@ function OrderDetailContent() {
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Tax</span>
-                    <span className="text-slate-400 italic">₹{ (order.subtotal * 0.0018).toLocaleString('en-IN') }</span>
+                    <span className="text-slate-500">Platform Service Fee</span>
+                    <span className="text-slate-800 font-medium">₹{(order.serviceFee ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center font-bold text-slate-900 border-t border-slate-100 pt-3.5 mt-2">
                     <span className="text-sm">Grand Total</span>
-                    <span className="text-primary text-base">₹{(order.totalAmount+(order.subtotal * 0.0018)).toLocaleString('en-IN')}</span>
+                    <span className="text-primary text-base">₹{order.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </section>

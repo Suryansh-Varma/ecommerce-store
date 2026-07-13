@@ -15,9 +15,12 @@
 // SessionProvider as a prop. Our AuthProvider is a client component that reads
 // the JWT from localStorage on mount — no server round-trip needed.
 // This makes the layout a pure Server Component again (no async needed).
+//
+//   ADDED:   <AIChatWidget />                                ← TechHeaven AI floating widget
 // ============================================================
 
 import { AuthProvider } from '@/context/AuthContext';
+import AIChatWrapper from '@/components/AIChat/AIChatWrapper';
 import './globals.css';
 
 export default function RootLayout({
@@ -30,6 +33,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           {children}
+          <AIChatWrapper />
         </AuthProvider>
       </body>
     </html>

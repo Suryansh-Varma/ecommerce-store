@@ -5,17 +5,21 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/hooks/useAuth';
+import axiosClient from '@/services/axiosClient';
 
+// Matches the backend AddressResponse and AddressRequest
 interface Address {
-  id?: string;
-  name: string;
+  id?: number;
+  fullName: string;
+  phoneNumber: string;
+  houseNumber: string;
   street: string;
+  landmark?: string;
   city: string;
   state: string;
-  zip: string;
+  postalCode: string;
   country: string;
-  mobile: string;
-  label: 'Home' | 'Work';
+  default?: boolean;
 }
 
 function MyAccountContent() {
@@ -23,29 +27,40 @@ function MyAccountContent() {
   const [view, setView] = useState<'menu' | 'address' | 'order'>('menu');
   const [addresses, setAddresses] = useState<Address[]>([]);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [newAddress, setNewAddress] = useState<Address>({
-    name: '',
+  const emptyAddress: Address = {
+    fullName: '',
+    phoneNumber: '',
+    houseNumber: '',
     street: '',
+    landmark: '',
     city: '',
     state: '',
-    zip: '',
+    postalCode: '',
     country: '',
-    mobile: '',
-    label: 'Home',
-  });
+    default: false,
+  };
 
-  // Load addresses from localStorage
-  const loadAddresses = useCallback(() => {
+  const [newAddress, setNewAddress] = useState<Address>(emptyAddress);
+
+  // Load addresses from backend
+  const loadAddresses = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const stored = localStorage.getItem('user_addresses');
-      if (stored) setAddresses(JSON.parse(stored));
-    } catch {
-      setAddresses([]);
+      setLoading(true);
+      const res = await axiosClient.get(`/addresses/user/${user.id}`);
+      if (res.data?.data) {
+        setAddresses(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load addresses:', err);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadAddresses();
@@ -53,16 +68,7 @@ function MyAccountContent() {
 
   const handleAddNew = () => {
     setEditingId(null);
-    setNewAddress({
-      name: '',
-      street: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: '',
-      mobile: '',
-      label: 'Home',
-    });
+    setNewAddress(emptyAddress);
     setShowForm(true);
   };
 
@@ -72,42 +78,44 @@ function MyAccountContent() {
     setShowForm(true);
   };
 
-  const handleSaveAddress = () => {
+  const handleSetDefault = async (addressId: number) => {
     try {
-      const stored = localStorage.getItem('user_addresses');
-      const existing: Address[] = stored ? JSON.parse(stored) : [];
-      let updated: Address[];
+      await axiosClient.patch(`/addresses/${addressId}/default`);
+      await loadAddresses();
+    } catch (error) {
+      console.error('Failed to set default address:', error);
+      alert('Error setting default address.');
+    }
+  };
 
+  const handleDelete = async (addressId: number) => {
+    if (!confirm('Are you sure you want to delete this address?')) return;
+    try {
+      await axiosClient.delete(`/addresses/${addressId}`);
+      await loadAddresses();
+    } catch (error) {
+      console.error('Failed to delete address:', error);
+      alert('Error deleting address.');
+    }
+  };
+
+  const handleSaveAddress = async () => {
+    try {
       if (editingId) {
         // Update existing address
-        updated = existing.map((a) =>
-          a.id === editingId ? { ...newAddress, id: editingId } : a
-        );
+        await axiosClient.put(`/addresses/${editingId}`, newAddress);
       } else {
-        // Add new address with a local ID
-        const newId = `addr_${Date.now()}`;
-        updated = [...existing, { ...newAddress, id: newId }];
+        // Add new address
+        await axiosClient.post(`/addresses?userId=${user?.id}`, newAddress);
       }
-
-      localStorage.setItem('user_addresses', JSON.stringify(updated));
-      setAddresses(updated);
+      
+      await loadAddresses();
       setShowForm(false);
       setEditingId(null);
-      setNewAddress({
-        name: '',
-        street: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: '',
-        mobile: '',
-        label: 'Home',
-      });
-
-      alert(editingId ? 'Address updated successfully!' : 'Address added successfully!');
+      setNewAddress(emptyAddress);
     } catch (error) {
       console.error(error);
-      alert('Error while saving address.');
+      alert('Error while saving address. Please ensure all fields are valid.');
     }
   };
 
@@ -250,9 +258,17 @@ function MyAccountContent() {
                         <input
                           type="text"
                           placeholder="Full Name"
-                          value={newAddress.name}
-                          onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
+                          value={newAddress.fullName}
+                          onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
                           className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150 col-span-1 sm:col-span-2"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="House Number / Flat No."
+                          value={newAddress.houseNumber}
+                          onChange={(e) => setNewAddress({ ...newAddress, houseNumber: e.target.value })}
+                          className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150"
                           required
                         />
                         <input
@@ -260,8 +276,15 @@ function MyAccountContent() {
                           placeholder="Street Address"
                           value={newAddress.street}
                           onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                          className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150 col-span-1 sm:col-span-2"
+                          className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150"
                           required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Landmark (Optional)"
+                          value={newAddress.landmark || ''}
+                          onChange={(e) => setNewAddress({ ...newAddress, landmark: e.target.value })}
+                          className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150 col-span-1 sm:col-span-2"
                         />
                         <input
                           type="text"
@@ -281,11 +304,12 @@ function MyAccountContent() {
                         />
                         <input
                           type="text"
-                          placeholder="ZIP Code"
-                          value={newAddress.zip}
-                          onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })}
+                          placeholder="ZIP/Postal Code (6 digits)"
+                          value={newAddress.postalCode}
+                          onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
                           className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150"
                           required
+                          maxLength={6}
                         />
                         <input
                           type="text"
@@ -297,39 +321,14 @@ function MyAccountContent() {
                         />
                         <input
                           type="tel"
-                          placeholder="Mobile Number"
-                          value={newAddress.mobile}
-                          onChange={(e) => setNewAddress({ ...newAddress, mobile: e.target.value })}
+                          placeholder="Mobile Number (10 digits)"
+                          value={newAddress.phoneNumber}
+                          onChange={(e) => setNewAddress({ ...newAddress, phoneNumber: e.target.value })}
                           pattern="[0-9]{10}"
                           className="w-full p-2.5 bg-slate-50/50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all duration-150 col-span-1 sm:col-span-2"
                           required
+                          maxLength={10}
                         />
-                      </div>
-
-                      {/* Tag Selector */}
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setNewAddress({ ...newAddress, label: 'Home' })}
-                          className={`px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors duration-150 ${
-                            newAddress.label === 'Home'
-                              ? 'bg-primary border-primary text-white shadow-sm'
-                              : 'bg-white border-borders text-light hover:text-dark'
-                          }`}
-                        >
-                          Home
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setNewAddress({ ...newAddress, label: 'Work' })}
-                          className={`px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors duration-150 ${
-                            newAddress.label === 'Work'
-                              ? 'bg-primary border-primary text-white shadow-sm'
-                              : 'bg-white border-borders text-light hover:text-dark'
-                          }`}
-                        >
-                          Work
-                        </button>
                       </div>
 
                       {/* Form Actions */}
@@ -352,35 +351,54 @@ function MyAccountContent() {
                   ) : (
                     /* Saved Addresses List */
                     <div className="space-y-4">
-                      {addresses.length === 0 ? (
+                      {loading ? (
+                        <p className="text-xs font-medium text-light animate-pulse">Loading addresses...</p>
+                      ) : addresses.length === 0 ? (
                         <p className="text-xs font-medium text-light">No saved addresses found. Add one to expedite your checkouts.</p>
                       ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {addresses.map((addr) => (
                             <div
                               key={addr.id}
-                              className="border border-borders p-4 rounded-xl bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] flex flex-col justify-between gap-4"
+                              className={`border ${addr.default ? 'border-primary shadow-sm bg-blue-50/10' : 'border-borders bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]'} p-4 rounded-xl flex flex-col justify-between gap-4 relative`}
                             >
-                              <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <p className="font-semibold text-dark text-xs sm:text-sm">{addr.name}</p>
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded border border-primary/10 bg-primary/5 font-bold uppercase tracking-wider text-primary">
-                                    {addr.label}
-                                  </span>
-                                </div>
+                              {addr.default && (
+                                <span className="absolute top-4 right-4 text-[9px] px-2 py-0.5 rounded-full bg-primary text-white font-bold uppercase tracking-wider">
+                                  Default
+                                </span>
+                              )}
+                              <div className="space-y-2 pr-16">
+                                <p className="font-semibold text-dark text-xs sm:text-sm">{addr.fullName}</p>
                                 <div className="text-xs font-normal text-light space-y-0.5">
-                                  <p>{addr.street}</p>
-                                  <p>{addr.city}, {addr.state} - {addr.zip}</p>
+                                  <p>{addr.houseNumber}, {addr.street}</p>
+                                  {addr.landmark && <p>Landmark: {addr.landmark}</p>}
+                                  <p>{addr.city}, {addr.state} - {addr.postalCode}</p>
                                   <p>{addr.country}</p>
-                                  <p className="text-dark font-medium mt-1">Mobile: {addr.mobile}</p>
+                                  <p className="text-dark font-medium mt-1">Mobile: {addr.phoneNumber}</p>
                                 </div>
                               </div>
-                              <button
-                                onClick={() => handleEdit(addr)}
-                                className="w-full py-2 text-center text-xs font-semibold text-dark bg-white hover:bg-slate-50 rounded-lg border border-borders shadow-sm transition-colors"
-                              >
-                                Edit Address
-                              </button>
+                              <div className="flex flex-wrap gap-2 pt-2 border-t border-borders">
+                                <button
+                                  onClick={() => handleEdit(addr)}
+                                  className="flex-1 py-1.5 text-center text-[11px] font-semibold text-dark bg-white hover:bg-slate-50 rounded-lg border border-borders transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                {!addr.default && (
+                                  <button
+                                    onClick={() => addr.id && handleSetDefault(addr.id)}
+                                    className="flex-1 py-1.5 text-center text-[11px] font-semibold text-primary bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                                  >
+                                    Set Default
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => addr.id && handleDelete(addr.id)}
+                                  className="px-3 py-1.5 text-center text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>

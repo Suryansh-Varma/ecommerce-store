@@ -196,14 +196,14 @@ function CartContent() {
                       <span className="rounded border border-success/20 bg-success/5 px-2 py-0.5 text-[9px] font-bold text-success capitalize tracking-normal">Free</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Estimated Taxes(@18%)</span>
+                      <span>Platform Service Fee (0.18%)</span>
                       <span className="text-dark font-semibold text-xs">₹{(total * 0.0018).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
 
                   <div className="border-t border-borders pt-3.5 flex justify-between items-baseline">
                     <span className="text-xs font-bold text-dark">Total</span>
-                    <span className="text-lg font-bold text-primary">₹{total.toLocaleString('en-IN')}</span>
+                    <span className="text-lg font-bold text-primary">₹{(total + total * 0.0018).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <button

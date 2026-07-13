@@ -30,7 +30,8 @@ TechHeaven provides a seamless shopping experience with a premium Apple/Stripe-i
 - **Client-Side Cache**: Zustand stores provide immediate, optimistic UI updates for cart operations, coupon simulation, and profile details.
 - **Out-of-Stock Awareness**: Products with zero stock are visually flagged as "Out of Stock" — add-to-cart is disabled automatically.
 - **Admin Control Panel**: A protected `/admin` section allows privileged users to manage the entire platform without touching the backend directly.
-- **Premium Aesthetics**: Minimalist, high-end components with responsive layouts, smooth animations, and clean spacing.
+- **Premium Aesthetics**: Minimalist, Apple-inspired components with responsive layouts, smooth CSS animations, glassmorphism, and clean spacing.
+- **AI Chat Widget**: An intelligent chat widget available exclusively for authenticated users to help with product inquiries.
 
 ---
 
@@ -75,12 +76,13 @@ flowchart TD
 - **Product Catalogue**: Browse all products; out-of-stock items show a disabled "Out of Stock" badge.
 - **Shopping Cart**: Add items, update quantities, and remove products — synced with backend cart.
 - **Coupon Application**: Apply discount codes at checkout with live preview of savings.
-- **Checkout**: Select shipping address, payment method, and place order via the backend pipeline.
-- **Order History**: View all past orders with full financial breakdown (subtotal, coupon, discount, total).
+- **Checkout**: Select shipping address, payment method, and place order via the backend pipeline. Includes dynamic 0.18% Platform Service Fee calculation.
+- **Order History**: View all past orders with full financial breakdown (subtotal, coupon, discount, service fee, total).
 - **Order Details**: Premium card layout showing shipping info, itemised product table, and payment details.
 - **PDF Invoice**: Download a generated invoice for any order directly from the order details page.
 - **Order Cancellation**: Cancel PENDING orders from the order details page.
 - **My Account**: View and manage profile details and saved addresses.
+- **AI Chat**: Floating chat widget powered by Gemini for logged-in users.
 
 ### Admin Panel (`/admin`)
 - **Dashboard**: Real-time stats — total users, orders, revenue, and pending order count.

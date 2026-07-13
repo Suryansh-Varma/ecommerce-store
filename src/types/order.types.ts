@@ -26,6 +26,7 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   discountAmount: number;
+  serviceFee: number;
   couponCode: string | null;
   shippingName?: string;
   shippingPhone?: string;

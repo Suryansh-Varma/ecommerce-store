@@ -384,8 +384,9 @@ function CheckoutContent() {
   // Math Calculations
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = 0; // Free
-  const tax = subtotal * 0.0018; // 18% tax
-  const grandTotal = Math.max(0, subtotal + shipping + tax - discountAmount);
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const serviceFee = discountedSubtotal * 0.0018; 
+  const grandTotal = discountedSubtotal + shipping + serviceFee;
 
   // Delivery Date Calculation (Current + 5 Days)
   const deliveryDate = new Date();
@@ -836,15 +837,15 @@ function CheckoutContent() {
                       <span className="rounded border border-success/20 bg-success/5 px-2 py-0.5 text-[9px] font-bold text-success capitalize tracking-normal">Free</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Estimated Taxes</span>
-                      <span className="text-dark font-semibold text-xs">₹{(subtotal * 0.0018).toLocaleString('en-IN')}</span>
+                      <span>Platform Service Fee (0.18%)</span>
+                      <span className="text-dark font-semibold text-xs">₹{serviceFee.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                     </div>
                   </div>
 
                   {/* Grand Total */}
                   <div className="border-t border-borders pt-3.5 flex justify-between items-baseline">
                     <span className="text-xs font-bold text-dark">Grand Total</span>
-                    <span className="text-lg font-bold text-primary">₹{grandTotal.toLocaleString('en-IN')}</span>
+                    <span className="text-lg font-bold text-primary">₹{grandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                   </div>
 
                   {/* Place Order CTA */}
