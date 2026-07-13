@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +12,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const cartItems = useCartStore((state) => state.items) || [];
   const cartCount = cartItems.reduce((sum, item) => sum + (item?.quantity || 0), 0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => pathname === path;
 
@@ -33,7 +35,7 @@ export default function Navbar() {
         </Link>
 
         {/* Navigation Links */}
-        <nav className="flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1">
           <Link
             href="/"
             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-150 ${
@@ -69,7 +71,7 @@ export default function Navbar() {
         </nav>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           
           {/* Cart Icon Link */}
           <Link
@@ -90,23 +92,95 @@ export default function Navbar() {
           </Link>
 
           {/* Auth State Button */}
-          {auth.isAuthenticated ? (
-            <button
-              onClick={() => auth.logout()}
-              className="flex items-center justify-center px-3.5 h-9 bg-white border border-borders text-dark hover:bg-slate-50 rounded-lg text-xs font-semibold shadow-sm transition-colors duration-150"
-            >
-              Sign out
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/login')}
-              className="flex items-center justify-center px-3.5 h-9 bg-primary hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors duration-150"
-            >
-              Sign in
-            </button>
-          )}
+          <div className="hidden sm:block">
+            {auth.isAuthenticated ? (
+              <button
+                onClick={() => auth.logout()}
+                className="flex items-center justify-center px-3.5 h-9 bg-white border border-borders text-dark hover:bg-slate-50 rounded-lg text-xs font-semibold shadow-sm transition-colors duration-150"
+              >
+                Sign out
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/login')}
+                className="flex items-center justify-center px-3.5 h-9 bg-primary hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors duration-150"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex md:hidden h-9 w-9 items-center justify-center rounded-lg border border-borders bg-white text-dark transition-colors hover:bg-slate-50"
+            aria-label="Toggle Menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-borders bg-white px-6 py-4 flex flex-col gap-2 absolute top-16 left-0 w-full shadow-lg z-40">
+          <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+              isActive('/') ? 'text-dark bg-slate-50' : 'text-light hover:text-dark'
+            }`}
+          >
+            Home
+          </Link>
+          <Link
+            href="/myaccount"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+              isActive('/myaccount') ? 'text-dark bg-slate-50' : 'text-light hover:text-dark'
+            }`}
+          >
+            Account
+          </Link>
+          {auth.isAuthenticated && (
+            <Link
+              href="/orders"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                isActive('/orders') ? 'text-dark bg-slate-50' : 'text-light hover:text-dark'
+              }`}
+            >
+              Orders
+            </Link>
+          )}
+          
+          <div className="h-px bg-borders my-2 w-full sm:hidden"></div>
+          
+          <div className="sm:hidden">
+            {auth.isAuthenticated ? (
+              <button
+                onClick={() => { auth.logout(); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-center px-3.5 h-10 bg-white border border-borders text-dark hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors"
+              >
+                Sign out
+              </button>
+            ) : (
+              <button
+                onClick={() => { router.push('/login'); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-center px-3.5 h-10 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
