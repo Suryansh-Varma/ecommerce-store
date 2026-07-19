@@ -21,6 +21,7 @@
 
 import { AuthProvider } from '@/context/AuthContext';
 import AIChatWrapper from '@/components/AIChat/AIChatWrapper';
+import NextTopLoader from 'nextjs-toploader';
 import './globals.css';
 
 export default function RootLayout({
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <NextTopLoader color="#2563EB" showSpinner={false} />
         <AuthProvider>
           {children}
           <AIChatWrapper />

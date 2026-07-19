@@ -105,7 +105,44 @@ export default function ProductPage() {
       image: product.imageUrl || product.image_url || '',
       quantity: 1,
     });
-    toast.success('Added to cart');
+    toast(
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 shrink-0 bg-slate-50 rounded-md p-1 border border-borders flex items-center justify-center">
+           <img 
+              src={product.imageUrl || product.image_url || "/placeholder.png"} 
+              alt={product.name} 
+              className="object-contain h-full w-full"
+           />
+        </div>
+        <div className="flex-1 min-w-0 pr-2">
+          <p className="text-xs font-bold text-dark leading-tight truncate">{product.name}</p>
+          <p className="text-[10px] text-light font-medium mt-0.5">Added to cart</p>
+        </div>
+        <Link 
+          href="/cart" 
+          className="shrink-0 bg-primary hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-md transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          View
+        </Link>
+      </div>,
+      {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+          padding: '12px',
+          border: '1px solid #e2e8f0',
+          background: '#ffffff',
+        },
+        icon: false,
+      }
+    );
   };
 
   if (loading) {

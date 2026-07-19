@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function LoginPage() {
+function LoginForm() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +19,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Calls Spring Boot POST /users/login
-      // Stores JWT in localStorage, updates AuthContext, redirects to /
-      await login({ email, password });
+      const from = searchParams.get('from') || '/';
+      await login({ email, password }, from);
     } catch (err: unknown) {
-      // Axios error — Spring Boot returned 401 or 400
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setError(
         axiosErr.response?.data?.message ||
@@ -134,5 +134,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

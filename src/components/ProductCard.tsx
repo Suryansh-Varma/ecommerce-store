@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { Product } from "@/types/product.types";
+import ElectricBorder from "./ElectricBorder";
 
 export default function ProductCard({ product }: { product: Product }) {
-  return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-borders bg-white p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all duration-150">
+  // Use character code to pseudo-randomly but deterministically select 1 out of 3 products
+  const isFeatured = String(product.id).charCodeAt(String(product.id).length - 1) % 3 === 0;
+
+  const cardContent = (
+    <div className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border bg-white p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-150 h-full ${isFeatured ? 'border-transparent' : 'border-borders hover:border-slate-300'}`}>
       
       {/* Product Image Container */}
       <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-50/50 flex items-center justify-center border border-borders/40">
@@ -57,4 +61,21 @@ export default function ProductCard({ product }: { product: Product }) {
       
     </div>
   );
+
+  if (isFeatured) {
+    return (
+      <ElectricBorder
+        color="#3B82F6"
+        speed={1.5}
+        chaos={0.12}
+        thickness={2}
+        style={{ borderRadius: '0.75rem' }}
+        className="h-full"
+      >
+        {cardContent}
+      </ElectricBorder>
+    );
+  }
+
+  return cardContent;
 }

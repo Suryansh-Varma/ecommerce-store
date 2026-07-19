@@ -7,7 +7,7 @@ import { register } from '@/services/authService';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,14 +15,43 @@ export default function SignupPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const checkPasswordStrength = (pass: string) => {
+    if (!pass) return { label: '', color: 'bg-transparent', score: 0 };
+    let score = 0;
+    if (pass.length >= 8) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pass)) score += 1;
+    if (/[a-z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+
+    if (score <= 2) return { label: 'Weak', color: 'bg-danger', score };
+    if (score <= 4) return { label: 'Medium', color: 'bg-yellow-500', score };
+    return { label: 'Strong', color: 'bg-green-500', score };
+  };
+
+  const strength = checkPasswordStrength(form.password);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+      setError('Password must be at least 8 characters, contain 1 uppercase letter and 1 special character.');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Calls Spring Boot POST /users/register
-      await register(form);
+      const { confirmPassword, ...registerData } = form;
+      await register(registerData);
       // On success — redirect to login
       router.push('/login');
     } catch (err: unknown) {
@@ -103,6 +132,37 @@ export default function SignupPage() {
               name="password"
               placeholder="••••••••"
               value={form.password}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 bg-slate-50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all duration-150"
+            />
+            {form.password && (
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-semibold">
+                  <span className="text-light">Password Strength</span>
+                  <span className={
+                    strength.label === 'Weak' ? 'text-danger' : 
+                    strength.label === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                  }>{strength.label}</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                  <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: `${(strength.score / 5) * 100}%` }}></div>
+                </div>
+                <p className="text-[9px] text-light/70">Min 8 chars, 1 uppercase, 1 special char</p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="confirmPassword" className="text-[10px] font-bold text-light uppercase tracking-wider">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              name="confirmPassword"
+              placeholder="••••••••"
+              value={form.confirmPassword}
               onChange={handleChange}
               required
               className="w-full px-3 py-2 bg-slate-50 border border-borders rounded-lg text-xs text-dark placeholder-light focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all duration-150"

@@ -33,7 +33,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;           // true while checkAuth() runs on mount
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginPayload, redirectUrl?: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => void;        // exposed for ProtectedRoute to call
 }
@@ -44,7 +44,7 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
+  login: async (payload, redirectUrl) => {},
   logout: () => {},
   checkAuth: () => {},
 });
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── LOGIN ──────────────────────────────────────────────────
   // Calls Spring Boot, stores token + decoded user, updates state.
   // Replaces: signIn('credentials', { email, password, callbackUrl: '/' })
-  const login = useCallback(async (payload: LoginPayload) => {
+  const login = useCallback(async (payload: LoginPayload, redirectUrl?: string) => {
   const response = await authService.login(payload);
 
   const user = {
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   setUser(user);
   setIsAuthenticated(true);
 
-  router.push("/");
+  router.push(redirectUrl || "/");
 }, [router]);
 
   // ── LOGOUT ─────────────────────────────────────────────────
